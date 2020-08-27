@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>za.co.absa.bolt</groupId>
-	<artifactId>bolt-soap-ui</artifactId>
+	<artifactId>bolt-karate</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>bolt-karate</name>
 	<description>Bolt SOAP-UI Tests</description>
