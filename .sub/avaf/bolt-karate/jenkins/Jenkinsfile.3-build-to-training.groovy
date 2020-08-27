@@ -56,44 +56,6 @@ def initializeJenkinsConfig() {
     }
 }
 
-/*
-Deploy the application into a given environment in a given cluster using the given tag.
-
-Note: Must be run in a 'sub-build-tools' container
-*/
-def deploy(environment, imageTag, cluster) {
-    def namespace = "${subatomicTeamName}-${subatomicProjectName}-${environment}"
-    log("Starting helm upgrade in ${namespace} namespace...")
-
-    def valueFileOptions = getAllValueFileOptions(environment, cluster.name)
-
-    def setFQDNCommand = ""
-    if (cluster.fqdn != null && hasIngress) {
-        setFQDNCommand = "--set ingress.fqdn=${subatomicAppName}.${subatomicProjectName}-${environment}.${cluster.fqdn}"
-    }
-
-    // output the helm templates for troubleshooting
-    sh "helm template ${subatomicHomeFolder}/charts/ \
-           --values=${subatomicHomeFolder}/charts/values-${environment}.yaml \
-           --values=${subatomicHomeFolder}/charts/values.yaml \
-           ${setFQDNCommand} \
-           --set buildID=${imageTag}"
-
-    // If the first installation fails, wipe it. This is a limitation of Helm https://github.com/helm/helm/issues/3353
-    sh "if helm history --kubeconfig='${kubeconfigDir}/${cluster.kubeconfigConfigmapName}/kubeconfig.yaml' --namespace=${namespace} --max 1 ${subatomicAppName} 2>/dev/null | grep pending-install | cut -f1 | grep -q 1; then helm delete --kubeconfig='${kubeconfigDir}/${cluster.kubeconfigConfigmapName}/kubeconfig.yaml' --namespace=${namespace} ${subatomicAppName}; fi"
-
-    sh "sub_build_tools kube watch-deployment --namespace=${namespace} --kube_config_file='${kubeconfigDir}/${cluster.kubeconfigConfigmapName}/kubeconfig.yaml' --deployment_name=${subatomicAppName}-${languagePack} & \
-        helm upgrade --install ${subatomicAppName} ${subatomicHomeFolder}/charts \
-           --atomic \
-           --kubeconfig='${kubeconfigDir}/${cluster.kubeconfigConfigmapName}/kubeconfig.yaml' \
-           --namespace=${namespace} \
-           --set image.repository=${dockerPushProject}/${subatomicProjectName}_${subatomicAppName} \
-           --set image.tag=${imageTag} \
-           ${valueFileOptions} \
-           ${setFQDNCommand} \
-           --set buildID=${imageTag}"
-}
-
 def getValueFileOption(valuesFileName) {
     def valuesFilePath = "${subatomicHomeFolder}/charts/${valuesFileName}"
     if (fileExists(valuesFilePath)) {
@@ -112,60 +74,6 @@ def getAllValueFileOptions(environment, clusterName) {
         ${clusterValues}"
 
     return valuesFiles
-}
-
-/*
-Deploy the application into a given environment in a given set of clusters using the given tag.
-
-Note: Must be run in a 'sub-build-tools' container
-*/
-def deployToClusters(environment, baseImageTag, clusters, retagToTag = null) {
-    // Tag the image with the correct environment prefix to make sure the image is retained
-    // using the harbor tag retention policies
-    if (retagToTag == null){
-        retagToTag = "${environment}-${baseImageTag}"
-    }
-    log("Retag ${baseImageTag} to ${retagToTag}")
-    sh "sub_build_tools docker retag-image \
-        --registry_url=https://${baseDockerRegistry} \
-        --image_name=${subatomicTeamName}/${subatomicProjectName}_${subatomicAppName} \
-        --auth_file='/docker/auth/.dockerconfigjson' \
-        --original_tag=${baseImageTag} --new_tag=${retagToTag}"
-
-    // For each cluster, deploy the application helm chart to the appropriate environment
-    clusters.each { cluster ->
-        log("Deploying to ${cluster.name}:${subatomicProjectName}-${environment}")
-        deploy(environment, "${retagToTag}", cluster)
-        log("Deployment to ${cluster.name}:${subatomicProjectName}-${environment} completed successfully.")
-    }
-}
-
-
-/*
-Package the application into a docker image.
-
-Note: Must be run in a 'kaniko' container
-*/
-def buildImage(doPush, imageTag = 'latest') {
-    def setProxyOptions = ""
-    
-
-    if (doPush){
-        sh "cp /docker/auth/.dockerconfigjson /kaniko/.docker/config.json"
-
-        sh "executor \
-        ${setProxyOptions} \
-        --skip-tls-verify --context=\$(pwd) --dockerfile=${subatomicHomeFolder}/Dockerfile \
-        --destination=${dockerPushProject}/${subatomicProjectName}_${subatomicAppName}:${imageTag}"
-
-        log("Successfully built image ${dockerPushProject}/${subatomicProjectName}_${subatomicAppName}:${imageTag}")
-    } else {
-        sh "executor \
-        ${setProxyOptions} \
-        --context=\$(pwd) --dockerfile=${subatomicHomeFolder}/Dockerfile \
-        --no-push \
-        --skip-tls-verify-pull"
-    }
 }
 
 def logMetrics(message) {
@@ -216,61 +124,37 @@ imagePullSecrets: ["${registryCredentialSecretName}"]){
         def gitCommit = myRepo.GIT_COMMIT
         def shortGitCommit = "${gitCommit[0..10]}"
         def baseImageTag = "${BUILD_NUMBER}-${shortGitCommit}"
-        
-        stage('Test') {
-            logStage("Test")
-            container('maven') {
-                sh "mvn test"
-            }
-        }
-        
-        stage('Build') {
-            logStage("Build")
-            container('maven') {
-                sh "mvn package -DskipTests"
-            }
-        }
-        
 
-        if (env.BRANCH_NAME == 'release/**') {
-            log("Building release/**...")
+        def summary;
+        lock('Tests') {
+            stage('Test') {
+                container('maven') {
+                    sh "mkdir -p ~/.m2"
+                    sh "echo '<settings>\n" +
+                            "  <mirrors>\n" +
+                            "    <mirror>\n" +
+                            "      <id>bison-nexus</id>\n" +
+                            "      <mirrorOf>*</mirrorOf>\n" +
+                            "      <name>BISON Nexus mirror</name>\n" +
+                            "      <url>http://nexus.prod.ocp.absa.co.za/repository/public-repositories/</url>\n" +
+                            "    </mirror>\n" +
+                            "  </mirrors>" +
+                            "</settings>' > ~/.m2/settings.xml"
 
-            stage('Package') {
-                logStage("Package")
-                container('kaniko') {
-                    buildImage(true, "${baseImageTag}")
-                }
-            }
-
-            // For each non prod environment deploy helm chart to each associated nonprod cluster
-            // Example deploy application "my-app" to the "dev" environment in both sdc and 270
-            nonprodEnvironments.each { nonProdEnvironment ->
-                stage("Deploy NonProd ${nonProdEnvironment}") {
-                    logStage("Deploy NonProd ${nonProdEnvironment}")
-                    container('sub-build-tools') {
-                        deployToClusters(nonProdEnvironment, baseImageTag, nonprodClusters)
+                    // 6. Run the acceptance tests
+                    checkout(scm)
+                    try {
+                        sh ': Run tests && mvn --batch-mode test '
+                    } catch (e) {
+                        currentBuild.result = "FAILURE"
+                    } finally {
+                        summary = junit 'target/surefire-reports/*.xml'
                     }
                 }
             }
-
-            // For each prod environment deploy helm chart to each associated prod cluster
-            // Example deploy application "my-app" to the "dev" environment in both sdc and 270
-            prodEnvironments.each { prodEnvironment ->
-                stage("Deploy Prod ${prodEnvironment}") {
-                    logStage("Deploy Prod ${prodEnvironment}")
-                    container('sub-build-tools') {
-                        deployToClusters(prodEnvironment, baseImageTag, prodClusters)
-                    }
-                }
-            }
-
-        } else {
-            log("Build non release/** branch...")
-
-            stage('Package'){
-                logStage("Package")
-                container('kaniko') {
-                    buildImage(false)
+            stage('Notification') {
+                if (summary) {
+                    slackSend channel: '#avaf-bolt-integration', color: summary.failCount == 0 ? 'good' : 'warning', message: "Executed ${env.JOB_NAME}. Failures ${summary.failCount}"
                 }
             }
         }

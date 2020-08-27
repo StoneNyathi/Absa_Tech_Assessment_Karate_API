@@ -27,7 +27,7 @@ nonprodClusters = [
     ]
 ]
 
-nonprodEnvironments = ["dev", "uat"]
+nonprodEnvironments = ["uat"]
 
 prodClusters = [
     [
@@ -44,8 +44,6 @@ prodClusters = [
 
 prodEnvironments = []
 
-selectTagFromEnvironment = true
-
 // Initialise docker registry details initializeJenkinsConfig
 initializeJenkinsConfig()
 
@@ -57,44 +55,6 @@ def initializeJenkinsConfig() {
         dockerPushProject = "${baseDockerRegistry}/${subatomicTeamName}"
         dockerPullProject = "${baseDockerRegistry}/bison-cloud"
     }
-}
-
-/*
-Deploy the application into a given environment in a given cluster using the given tag.
-
-Note: Must be run in a 'sub-build-tools' container
-*/
-def deploy(environment, imageTag, cluster) {
-    def namespace = "${subatomicTeamName}-${subatomicProjectName}-${environment}"
-    log("Starting helm upgrade in ${namespace} namespace...")
-
-    def valueFileOptions = getAllValueFileOptions(environment, cluster.name)
-
-    def setFQDNCommand = ""
-    if (cluster.fqdn != null && hasIngress) {
-        setFQDNCommand = "--set ingress.fqdn=${subatomicAppName}.${subatomicProjectName}-${environment}.${cluster.fqdn}"
-    }
-
-    // output the helm templates for troubleshooting
-    sh "helm template ${subatomicHomeFolder}/charts/ \
-           --values=${subatomicHomeFolder}/charts/values-${environment}.yaml \
-           --values=${subatomicHomeFolder}/charts/values.yaml \
-           ${setFQDNCommand} \
-           --set buildID=${imageTag}"
-
-    // If the first installation fails, wipe it. This is a limitation of Helm https://github.com/helm/helm/issues/3353
-    sh "if helm history --kubeconfig='${kubeconfigDir}/${cluster.kubeconfigConfigmapName}/kubeconfig.yaml' --namespace=${namespace} --max 1 ${subatomicAppName} 2>/dev/null | grep pending-install | cut -f1 | grep -q 1; then helm delete --kubeconfig='${kubeconfigDir}/${cluster.kubeconfigConfigmapName}/kubeconfig.yaml' --namespace=${namespace} ${subatomicAppName}; fi"
-
-    sh "sub_build_tools kube watch-deployment --namespace=${namespace} --kube_config_file='${kubeconfigDir}/${cluster.kubeconfigConfigmapName}/kubeconfig.yaml' --deployment_name=${subatomicAppName}-${languagePack} & \
-        helm upgrade --install ${subatomicAppName} ${subatomicHomeFolder}/charts \
-           --atomic \
-           --kubeconfig='${kubeconfigDir}/${cluster.kubeconfigConfigmapName}/kubeconfig.yaml' \
-           --namespace=${namespace} \
-           --set image.repository=${dockerPushProject}/${subatomicProjectName}_${subatomicAppName} \
-           --set image.tag=${imageTag} \
-           ${valueFileOptions} \
-           ${setFQDNCommand} \
-           --set buildID=${imageTag}"
 }
 
 def getValueFileOption(valuesFileName) {
@@ -117,44 +77,6 @@ def getAllValueFileOptions(environment, clusterName) {
     return valuesFiles
 }
 
-/*
-Deploy the application into a given environment in a given set of clusters using the given tag.
-
-Note: Must be run in a 'sub-build-tools' container
-*/
-def deployToClusters(environment, baseImageTag, clusters, retagToTag = null) {
-    // Tag the image with the correct environment prefix to make sure the image is retained
-    // using the harbor tag retention policies
-    if (retagToTag == null){
-        retagToTag = "${environment}-${baseImageTag}"
-    }
-    log("Retag ${baseImageTag} to ${retagToTag}")
-    sh "sub_build_tools docker retag-image \
-        --registry_url=https://${baseDockerRegistry} \
-        --image_name=${subatomicTeamName}/${subatomicProjectName}_${subatomicAppName} \
-        --auth_file='/docker/auth/.dockerconfigjson' \
-        --original_tag=${baseImageTag} --new_tag=${retagToTag}"
-
-    // For each cluster, deploy the application helm chart to the appropriate environment
-    clusters.each { cluster ->
-        log("Deploying to ${cluster.name}:${subatomicProjectName}-${environment}")
-        deploy(environment, "${retagToTag}", cluster)
-        log("Deployment to ${cluster.name}:${subatomicProjectName}-${environment} completed successfully.")
-    }
-}
-
-def findImageTags(numTags, prefixFilter) {
-    def imageTagsRaw = sh (
-        script: "sub_build_tools docker get-tags --registry_url=https://${baseDockerRegistry} --image_name=${subatomicTeamName}/${subatomicProjectName}_${subatomicAppName} --auth_file='/docker/auth/.dockerconfigjson' --prefix_filter=${prefixFilter}",
-        returnStdout: true
-    ).trim()
-
-    log("Image tags found")
-    log(imageTagsRaw)
-
-    return new groovy.json.JsonSlurper().parseText(imageTagsRaw)
-}
-
 def logMetrics(message) {
     log("[${subatomicTeamName}, ${subatomicProjectName}, ${subatomicAppName}, ${JOB_URL}, ${BRANCH_NAME}, ${BUILD_NUMBER}] - ${message}")
 }
@@ -173,6 +95,8 @@ def logStage(stageName) {
 logMetrics("Jenkins Job Started")
 
 podTemplate(label: label, containers: [
+    containerTemplate(name: 'maven', image: dockerPullProject + '/sub-maven-3-jdk-11:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
+    containerTemplate(name: 'kaniko', image: dockerPullProject + '/kaniko:debug-v0.17.1', command: 'cat', ttyEnabled: true),
     containerTemplate(name: 'sub-build-tools', image: dockerPullProject + '/sub-build-tools:v2', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
 ], 
 volumes: [
@@ -183,38 +107,6 @@ imagePullSecrets: ["${registryCredentialSecretName}"]){
     node(label) {
         // Please do not remove this
         logMetrics("Jenkins Worker Scheduled")
-
-        def myRepo = checkout scm
-
-        def baseImageTag = null
-        def selectedTag = null
-
-        stage('Select tag to promote') {
-            container("sub-build-tools") {
-                // Determine how to filter images
-                def tagFilter = ""
-                def selectionMessage = "Last 10 tags built"
-
-                if (selectTagFromEnvironment){
-                    def environmentToPromoteFrom = nonprodEnvironments[0]
-                    nonprodEnvironments.remove(0)
-                    tagFilter = "${environmentToPromoteFrom}-"
-                    selectionMessage = "Last 10 tags deployed to ${environmentToPromoteFrom}"
-                }
-
-                def availableTags = findImageTags(10, tagFilter)
-                selectedTag = input(
-                        message: 'Please select the tag you wish to promote',
-                        ok: "Deploy tag",
-                        parameters: [choice(name: 'selectedTag', choices: availableTags, description: selectionMessage)]
-                )
-                if (selectTagFromEnvironment){
-                    // Remove the env- string from tag name to find the base image tag
-                    baseImageTag = selectedTag.substring(tagFilter.length())
-                }
-            }
-        }
-
 
         stage('Prepare') {
             logStage("Prepare")
@@ -229,26 +121,41 @@ imagePullSecrets: ["${registryCredentialSecretName}"]){
             }
         }
 
-        log("Starting Deployments")
+        def myRepo = checkout scm
+        def gitCommit = myRepo.GIT_COMMIT
+        def shortGitCommit = "${gitCommit[0..10]}"
+        def baseImageTag = "${BUILD_NUMBER}-${shortGitCommit}"
 
-        // For each non prod environment deploy helm chart to each associated nonprod cluster
-        // Example deploy application "my-app" to the "dev" environment in both sdc and 270
-        nonprodEnvironments.each { nonProdEnvironment ->
-            stage("Deploy NonProd ${nonProdEnvironment}") {
-                logStage("Deploy NonProd ${nonProdEnvironment}")
-                container('sub-build-tools') {
-                    deployToClusters(nonProdEnvironment, selectedTag, nonprodClusters, "${nonProdEnvironment}-${baseImageTag}")
+        def summary;
+        lock('Tests') {
+            stage('Test') {
+                container('maven') {
+                    sh "mkdir -p ~/.m2"
+                    sh "echo '<settings>\n" +
+                            "  <mirrors>\n" +
+                            "    <mirror>\n" +
+                            "      <id>bison-nexus</id>\n" +
+                            "      <mirrorOf>*</mirrorOf>\n" +
+                            "      <name>BISON Nexus mirror</name>\n" +
+                            "      <url>http://nexus.prod.ocp.absa.co.za/repository/public-repositories/</url>\n" +
+                            "    </mirror>\n" +
+                            "  </mirrors>" +
+                            "</settings>' > ~/.m2/settings.xml"
+
+                    // 6. Run the acceptance tests
+                    checkout(scm)
+                    try {
+                        sh ': Run tests && mvn --batch-mode test '
+                    } catch (e) {
+                        currentBuild.result = "FAILURE"
+                    } finally {
+                        summary = junit 'target/surefire-reports/*.xml'
+                    }
                 }
             }
-        }
-
-        // For each prod environment deploy helm chart to each associated prod cluster
-        // Example deploy application "my-app" to the "dev" environment in both sdc and 270
-        prodEnvironments.each { prodEnvironment ->
-            stage("Deploy Prod ${prodEnvironment}") {
-                logStage("Deploy Prod ${prodEnvironment}")
-                container('sub-build-tools') {
-                    deployToClusters(prodEnvironment, selectedTag, prodClusters, , "${prodEnvironment}-${baseImageTag}")
+            stage('Notification') {
+                if (summary) {
+                    slackSend channel: '#avaf-bolt-integration', color: summary.failCount == 0 ? 'good' : 'warning', message: "Executed ${env.JOB_NAME}. Failures ${summary.failCount}"
                 }
             }
         }
