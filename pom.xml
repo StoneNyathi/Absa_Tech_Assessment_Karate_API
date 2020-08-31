@@ -3,23 +3,70 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>za.co.absa.bolt</groupId>
-	<artifactId>bolt-soap-ui</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>bolt-karate</name>
-	<description>Bolt SOAP-UI Tests</description>
-
 	<properties>
-
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.8</java.version>
+		<maven.compiler.version>3.6.0</maven.compiler.version>
+		<karate.version>0.9.5</karate.version>
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.intuit.karate</groupId>
+			<artifactId>karate-junit5</artifactId>
+			<version>${karate.version}</version>
+			<scope>test</scope>
+		</dependency>
 
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.4.13</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.intuit.karate</groupId>
+			<artifactId>karate-apache</artifactId>
+			<version>${karate.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>net.masterthought</groupId>
+			<artifactId>cucumber-reporting</artifactId>
+			<version>3.8.0</version>
+		</dependency>
 
 	</dependencies>
 
 	<build>
-	
+		<testResources>
+			<testResource>
+				<directory>src/test/java</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</testResource>
+		</testResources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven.compiler.version}</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<compilerArgument>-Werror</compilerArgument>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.2</version>
+			</plugin>
+
+		</plugins>
 	</build>
 
 </project>

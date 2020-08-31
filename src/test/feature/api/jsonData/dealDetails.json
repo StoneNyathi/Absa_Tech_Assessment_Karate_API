@@ -1,0 +1,30 @@
+{
+  "businessReferenceNumber": "2020075680500192404",
+  "businessOriginatorReferenceNumber": "20200722172211",
+  "creditStatus": "Referred",
+  "clientType": "INDIVIDUAL",
+  "dealer": "J&M VENTER MOTORS CC",
+  "dealValue": "212079.46",
+  "phase": "Application",
+  "idNumber": "8107315156088",
+  "lastUpdated": 1595435873,
+  "applicationType": "Standard",
+  "dealType": "Dealer (PSD)",
+  "applicationDate": "2020-07-22 17:22",
+  "applicant": "Mr YUVENDHRAN GOVENDER",
+  "scoreCardType": "11",
+  "scoreResultCategory": "1",
+  "applicationNumber": "500192404",
+  "purchasePrice": "173913.04",
+  "residualValue": "0.00",
+  "deposit": "0.00",
+  "assetDescription": "2019 VOLKSWAGEN CITIVIVO 1.4 5DR",
+  "applicationStatus": "Pending Contract",
+  "podiumOutcome": "Referred",
+  "dealStatuses": [
+    "Pending Applicant Validations",
+    "Onboarding Risk Profile: Pending",
+    "Fraud: High Fraud Potential",
+    "Credit: Referred"
+  ]
+}
