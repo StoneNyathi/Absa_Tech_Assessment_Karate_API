@@ -4,9 +4,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>za.co.absa.bolt</groupId>
-	<artifactId>poc-karate</artifactId>
-	<version>0.0.1</version>
-	<packaging>jar</packaging>
+	<artifactId>bolt-karate</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>bolt-karate</name>
+	<description>Bolt API Tests</description>
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
@@ -79,8 +80,6 @@
 						<target>1.8</target>
 					</configuration>
 				</plugin>
-
-
 
 		</plugins>
 	</build>
