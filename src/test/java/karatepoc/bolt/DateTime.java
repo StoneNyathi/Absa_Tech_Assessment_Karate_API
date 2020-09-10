@@ -67,7 +67,6 @@ public class DateTime {
         try {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             Calendar cal = Calendar.getInstance();
-//        cal.setTime( dateFormat.parse(untildate));
             cal.add(Calendar.DATE, 1);
             convertedDate = dateFormat.format(cal.getTime());
             System.out.println("Date increase by one.." + convertedDate);
@@ -82,7 +81,6 @@ public class DateTime {
         try {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
             Calendar cal = Calendar.getInstance();
-//        cal.setTime( dateFormat.parse(untildate));
             cal.add(Calendar.DATE, 30);
             convertedDate = dateFormat.format(cal.getTime());
             System.out.println("Date increase by one.." + convertedDate);
@@ -97,7 +95,6 @@ public class DateTime {
         try {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
             Calendar cal = Calendar.getInstance();
-//        cal.setTime( dateFormat.parse(untildate));
             cal.add(Calendar.DATE, 5);
             convertedDate = dateFormat.format(cal.getTime());
             System.out.println("Date increase by one.." + convertedDate);

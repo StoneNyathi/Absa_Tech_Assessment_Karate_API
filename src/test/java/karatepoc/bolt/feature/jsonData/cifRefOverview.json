@@ -5,7 +5,7 @@
     "accountTypeDescription": "Personal Loans",
     "accountTypeCode": "PL",
     "accountNumber": "3001375188",
-    "accountBalance": -43685.34
+    "accountBalance": -43890.34
   },
   {
     "branchCode": 8198,
@@ -13,7 +13,7 @@
     "accountTypeDescription": "Cheque",
     "accountTypeCode": "CQ",
     "accountNumber": "4047969653",
-    "accountBalance": 4.09319491749E9
+    "accountBalance": 4.09667116561E9
   },
   {
     "branchCode": 8136,
@@ -29,7 +29,7 @@
     "accountTypeDescription": "New Savings",
     "accountTypeCode": "SA",
     "accountNumber": "9051212552",
-    "accountBalance": 100399.54
+    "accountBalance": 100384.54
   },
   {
     "branchCode": 8198,
@@ -37,7 +37,7 @@
     "accountTypeDescription": "New Savings",
     "accountTypeCode": "SA",
     "accountNumber": "9051303531",
-    "accountBalance": 750
+    "accountBalance": 745
   },
   {
     "branchCode": 8198,

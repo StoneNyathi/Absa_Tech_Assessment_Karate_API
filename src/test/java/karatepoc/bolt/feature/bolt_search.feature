@@ -1,11 +1,12 @@
 @Regression
+  @UAT
 Feature: Returns a deal from bolts
 
   Background:
     * header Accept = 'application/json'
     * configure ssl = true
     * def Timeout = 800000
-    * call read('config.feature') { accessToken: '#(accessToken)' }
+    * call read('config.feature') { accessToken: '#(UATaccessToken)' }
     #* def expectedOutput = read('karatepoc/bolt/feature/jsonData/dealDetails.json')
 
   Scenario Outline: Fetch one specific deal
@@ -13,7 +14,7 @@ Feature: Returns a deal from bolts
     And url BOLTURL_BaseURL
     And configure connectTimeout = Timeout
     And print '######## Found saved security token ######## '+accessToken
-    And header Authorization = 'Bearer '+accessToken
+    And header Authorization = 'Bearer '+UATaccessToken
     And header Content-Type = 'application/json'
     When method get
     Then status 200
@@ -33,7 +34,7 @@ Feature: Returns a deal from bolts
     #And url BOLTURL_BaseURL
     And configure connectTimeout = Timeout
     And print '######## Found saved security token ######## '+accessToken
-    And header Authorization = 'Bearer '+accessToken
+    And header Authorization = 'Bearer '+UATaccessToken
     And header Content-Type = 'application/json'
     When method get
     Then status 200
