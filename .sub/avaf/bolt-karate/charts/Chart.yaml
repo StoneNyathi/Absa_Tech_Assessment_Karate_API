@@ -1,0 +1,4 @@
+name: java11
+description: Subatomic helm chart for java11 applications
+apiVersion: v1
+version: 0.1.1

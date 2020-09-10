@@ -21,8 +21,14 @@
         <appender-ref ref="FILE" />
     </root>
 
-    <root level="WARN">
+  <root level="WARN">
         <appender-ref ref="CONSOLE" />
     </root>
+
+    <!-- <root level="WARN">
+       <appender-ref ref="stdout"/>
+   </root>-->
+
+       <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener" />
 
 </configuration>
