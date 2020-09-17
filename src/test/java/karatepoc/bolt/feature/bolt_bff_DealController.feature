@@ -95,22 +95,6 @@ Feature: Creates a deal and search using a business reference number then stores
       | bor | br |
       | BOR | BR |
 
-  Scenario Outline: Get deal activity for credit
-    Given path 'api/deal/activity/credit/<br>'
-    And url BOLTURL_BaseURL
-    And configure connectTimeout = Timeout
-    And print '######## Found saved security token ######## '+accessToken
-    And header Authorization = 'Bearer '+UATaccessToken
-    And header Content-Type = 'application/json'
-    When method get
-    Then status 200
-    And json responseJson = response
-    And  print 'pretty print:', responseJson
-    And print '\n', response
-
-    Examples:
-      | bor | br |
-      | BOR | BR |
 
   Scenario Outline: Get deal activity formatted for a deal
     Given path 'api/deal/activity/formatted/<br>'
