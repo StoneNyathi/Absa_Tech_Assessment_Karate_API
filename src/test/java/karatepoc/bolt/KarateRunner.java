@@ -2,6 +2,7 @@ package karatepoc.bolt;
 
 import com.intuit.karate.Results;
 import com.intuit.karate.Runner;
+import com.intuit.karate.junit5.Karate;
 import net.masterthought.cucumber.ReportBuilder;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
