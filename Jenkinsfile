@@ -27,6 +27,9 @@ podTemplate(containers: [
 
 				try {
 
+                    //sh './chromedriver && nohup chromedriver &'
+					//sh 'mvn --batch-mode test -Dheadless=true'
+
 					sh ': Run smoke tests && mvn test -Dtest=KarateRunner'
 
 				} finally {
