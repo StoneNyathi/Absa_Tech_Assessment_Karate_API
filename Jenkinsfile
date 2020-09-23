@@ -38,6 +38,9 @@ podTemplate(containers: [
          post {
                  always {
                      cucumber '**/cucumber.json'
+                     cucumber fileIncludePattern: '**/bolt-karate/target/cucumber-report.json', sortingMethod: 'ALPHABETICAL'
+                     publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: '/home/reports', reportFiles: 'reports.html', reportName: 'BOLT API Test Report', reportTitles: ''])
+
                  }
              }
 }
