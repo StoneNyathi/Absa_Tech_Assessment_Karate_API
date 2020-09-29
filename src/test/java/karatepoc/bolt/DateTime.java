@@ -14,12 +14,14 @@ public class DateTime {
 
     public String getBusinessRefNumber(String arg) {
         String displayTime = "";
+        String SimpleDateFormat = "";
         try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
             displayTime = (new SimpleDateFormat(timeStampFormat).format(new Date()));
         } catch (Exception e) {
             System.out.println("Date Time Seems To Be Incorrect. : " + e.getMessage());
         }
-        return "0000"+displayTime;
+        return SimpleDateFormat+displayTime;
     }
 
     public String getFullDate(String arg) {
