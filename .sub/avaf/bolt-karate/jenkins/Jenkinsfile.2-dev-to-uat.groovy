@@ -146,6 +146,7 @@ imagePullSecrets: ["${registryCredentialSecretName}"]){
                     checkout(scm)
                     try {
                         sh ': Run tests && mvn --batch-mode test '
+                        sh ': Run smoke tests && mvn test -Dtest=KarateRunner'
                     } catch (e) {
                         currentBuild.result = "FAILURE"
                     } finally {
@@ -157,6 +158,14 @@ imagePullSecrets: ["${registryCredentialSecretName}"]){
                 if (summary) {
                     slackSend channel: '#avaf-bolt-integration', color: summary.failCount == 0 ? 'good' : 'warning', message: "Executed ${env.JOB_NAME}. Failures ${summary.failCount}"
                 }
+            }
+        }
+        post {
+            always {
+                cucumber '**/cucumber.json'
+                cucumber fileIncludePattern: '**/bolt-karate/target/cucumber-report.json', sortingMethod: 'ALPHABETICAL'
+                publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: true, reportDir: '/home/reports', reportFiles: 'reports.html', reportName: 'BOLT API Test Report', reportTitles: ''])
+
             }
         }
 
