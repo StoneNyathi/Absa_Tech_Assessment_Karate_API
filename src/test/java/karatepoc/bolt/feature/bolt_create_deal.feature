@@ -28,10 +28,11 @@ Feature: Creates a deal and search using a business reference number then stores
     Then status 200
     And print 'pretty print:', '\n', response
 
-#  Scenario Outline: Search deal using BOR
     * configure retry = { count: 10, interval: 3000 }
     And url 'https://api-uat.bolt.sdc-nonprod.caas.absa.co.za/deal-api/api/deal/search/deal/?searchTerm=&stage=&dealer=&status=&dealType=&applicationType=&dealStatus=&errorStatus=&podiumOutcome=&startDate=&endDate=&page=0&sort=createDate,desc&reference=' + <bor>
     And url BOLTURL_BaseURL
+    * configure retry = { count: 15, interval: 5000 }
+    And url 'https://api-uat.bolt.sdc-nonprod.caas.absa.co.za/deal-api/api/deal/search/deal/?searchTerm=&stage=&dealer=&status=&dealType=&applicationType=&dealStatus=&errorStatus=&podiumOutcome=&startDate=&endDate=&page=0&sort=createDate,desc&reference=' + <bor>
     And configure connectTimeout = Timeout
     And print '######## Found saved security token ######## '+accessToken
     And header Authorization = 'Bearer '+UATaccessToken
