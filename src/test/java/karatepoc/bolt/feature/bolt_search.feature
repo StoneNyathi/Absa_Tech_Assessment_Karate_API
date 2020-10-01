@@ -27,7 +27,7 @@ Feature: Returns a deal from bolts
       | 2020075180500191866 |
       | 2020075640500191869 |
 
-
+    
   Scenario: Fetch today's deals from bolt
     Given url 'https://api-uat.bolt.sdc-nonprod.caas.absa.co.za/deal-api/api/deal/search/deal/?searchTerm=&stage=&dealer=&status=&dealType=&applicationType=&dealStatus=&startDate=2020-07-09&endDate=2020-07-09&page=0&sort=createDate,desc'
     And configure connectTimeout = Timeout
