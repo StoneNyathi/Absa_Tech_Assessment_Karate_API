@@ -9,8 +9,8 @@ function fn() {
     Base url for api calls is https://api.avaf-dev.bolt.nonprod.caas.absa.co.za/
     Base url for keycloak - https://sso.bolt.sdc-nonprod.caas.absa.co.za/auth/
   */
-    BOLTURL_BaseURL : 'https://api-uat.bolt.sdc-nonprod.caas.absa.co.za/deal-api/',
-    GATEWAY_URL : 'https://api-uat.bolt.sdc-nonprod.caas.absa.co.za/vehiclefin/services/WStoCntrlGateway',
+    BOLTURL_BaseURL : 'https://api.avaf-uat.bolt.sdc-nonprod.caas.absa.co.za/deal-api/',
+    GATEWAY_URL : 'https://api.avaf-uat.bolt.nonprod.caas.absa.co.za/vehiclefin/services/WStoCntrlGateway',
     BFF_BaseURL : 'https://deal-management-bff.avaf-dev.bolt.sdc-nonprod.caas.absa.co.za',
     BOLT_HEADER : '',
     VPN_proxy : '',
@@ -26,8 +26,8 @@ function fn() {
     config.loginAuthURL =  '';
   }
   else if (env == 'QA') {
-    config.BOLTURL_BaseURL = 'https://api-uat.bolt.sdc-nonprod.caas.absa.co.za/deal-api/'
-    config.GATEWAY_URL = 'https://api-uat.bolt.sdc-nonprod.caas.absa.co.za/vehiclefin/services/WStoCntrlGateway'
+    config.BOLTURL_BaseURL = 'https://api.avaf-uat.bolt.sdc-nonprod.caas.absa.co.za/deal-api/'
+    config.GATEWAY_URL = 'https://api.avaf-uat.bolt.nonprod.caas.absa.co.za/vehiclefin/services/WStoCntrlGateway'
     config.BOLT_HEADER = '';
     config.VPN_proxy = '';
     config.loginAuthURL =  '';

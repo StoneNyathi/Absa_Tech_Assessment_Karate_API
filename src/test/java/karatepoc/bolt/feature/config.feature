@@ -4,7 +4,7 @@ Feature: API Token
     * configure ssl = true
 
   Scenario: Create token in UAT
-    Given url 'https://sso-uat.bolt.sdc-nonprod.caas.absa.co.za/auth/realms/avaf/protocol/openid-connect/token'
+    Given url 'https://sso.bolt.sdc-nonprod.caas.absa.co.za/auth/realms/avaf/protocol/openid-connect/token'
     And header Content-Type = 'application/x-www-form-urlencoded'
     And form field grant_type = 'password'
     And form field client_id = 'avaf'
@@ -27,3 +27,27 @@ Feature: API Token
     Then status 200
     * print '\n', response
     * def DEVaccessToken = response.access_token
+
+  Scenario: Create token for Credit Sanctioner in UAT
+    Given url 'https://sso.bolt.sdc-nonprod.caas.absa.co.za/auth/realms/avaf/protocol/openid-connect/token'
+    And header Content-Type = 'application/x-www-form-urlencoded'
+    And form field grant_type = 'password'
+    And form field client_id = 'avaf'
+    And form field username = 'sanctioner11'
+    And form field password = 'sanctioner11'
+    When method POST
+    Then status 200
+    * print '\n', response
+    * def UAT_sanctioner11_accessToken = response.access_token
+
+  Scenario: Create token for Fraud Officer in UAT
+    Given url 'https://sso.bolt.sdc-nonprod.caas.absa.co.za/auth/realms/avaf/protocol/openid-connect/token'
+    And header Content-Type = 'application/x-www-form-urlencoded'
+    And form field grant_type = 'password'
+    And form field client_id = 'avaf'
+    And form field username = 'fraud_officer'
+    And form field password = 'fraud_officer'
+    When method POST
+    Then status 200
+    * print '\n', response
+    * def UAT_fraudOfficer_accessToken = response.access_token

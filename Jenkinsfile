@@ -46,4 +46,9 @@ podTemplate(containers: [
 
                  }
              }
+       stage('Notification') {
+                if (summary) {
+                    slackSend channel: '#avaf-bolt-integration', color: summary.failCount == 0 ? 'good' : 'warning', message: "Executed"
+                }
+            }
 }

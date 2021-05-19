@@ -1,0 +1,27 @@
+{
+  "action": "Assessed: Credit referral",
+  "documentDetails": [],
+  "actionResult": {
+    "outcome": "APPROVED",
+    "feedback": "Approved",
+    "actionFields": {},
+    "certified": true,
+    "valid": true,
+    "userComment": "approved through API Call",
+    "outcomeReasons": [],
+    "groupedFeedback": {
+      "hardConditions": [],
+      "softConditions": []
+    }
+  },
+  "businessReferenceNumber": "",
+  "businessOriginatorReferenceNumber": "",
+  "actionId": "",
+  "employeeNumber": "sanctioner11",
+  "employeeFirstName": "sanctioner11",
+  "employeeSurname": "sanctioner11",
+  "informationRequest": {
+    "additionalDocuments": []
+  },
+  "startTime": "2020-09-22T16:07:23.381"
+}
