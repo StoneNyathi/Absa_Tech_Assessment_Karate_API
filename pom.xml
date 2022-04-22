@@ -3,11 +3,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>za.co.absa.bolt</groupId>
-	<artifactId>bolt-karate</artifactId>
+	<groupId>za.co.absa.assessment</groupId>
+	<artifactId>karate_API</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>bolt-karate</name>
-	<description>Bolt API Tests</description>
+	<name>karate_API</name>
+	<description>API Tests</description>
 
 	<properties>
 		<java.version>11</java.version>

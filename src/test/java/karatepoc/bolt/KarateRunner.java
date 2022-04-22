@@ -28,7 +28,7 @@ class KarateRunner {
         Collection<File> jsonFiles = FileUtils.listFiles(new File(karateOutputPath), new String[]{"json"}, true);
         List<String> jsonPaths = new ArrayList<String>(jsonFiles.size());
         jsonFiles.forEach(file -> jsonPaths.add(file.getAbsolutePath()));
-        Configuration config = new Configuration(new File("target"), "BACKEND == BOLT == KARATE == APIs ");
+        Configuration config = new Configuration(new File("target"), "BACKEND == BREEDS == KARATE == APIs ");
         ReportBuilder reportBuilder = new ReportBuilder(jsonPaths, config);
         reportBuilder.generateReports();
     }

@@ -45,7 +45,7 @@ PROJECT STRUCTURE
 
 JUNIT5
 -------
-We choosen that we used JUNIT 5 to this project, simpole because Karate supports JUnit 5 and the advantage is that you can have multiple methods in a test-class. 
+We choose that we use JUNIT 5 for this project, simple because Karate supports JUnit 5 and the advantage is that you can have multiple methods in a test-class. 
 Only 1 import is needed, and instead of a class-level annotation, you use a nice DRY and fluent-api to express which tests and tags you want to use.
 
 EXECUTING THE PROJECT
@@ -80,22 +80,23 @@ class KarateRunner {
  - This project is integrated with Bolt Jenkins.
  - Everytime you merge your PR it will kick off the build.
  - There is a scheduler that it runs every after four hours.
- 
- 
+
  REPORTING
  -----------
-
 We are using cucumber extent report because Karate's integration includes the HTTP request and response logs in-line with the test report, which is extremely useful for troubleshooting test failures.
 
 You can get it in the target folder after execution
 
+PRE_REQUISITES:
+--------------
+- Install Java JDK 11
+- Install Maven latest version
+- Open the Project in IDE of choice and set it the Project as a Maven project
 
-
-
-
-
-
-
+How to Run the Feature:
+------------
+- Click on the Assessment.Feature file under Karate_API_tests -> Assessment-karate -> src -> test -> java -> feature
+- Right click and Run Feature.Assessment
 
 
 
